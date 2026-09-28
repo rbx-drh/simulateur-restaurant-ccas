@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Simulateur Titre Restaurant – Ville de Roubaix</title>
+<style>
+  :root {
+    --rose: #e3006a;
+    --noir: #1a171b;
+    --jaune: #fbbb00;
+    --bleu: #5db1e4;
+    --vert: #b4c30c;
+    --violet: #526bac;
+    font-family: "Neo Sans", Helvetica, "Segoe UI", system-ui, sans-serif;
+    color: var(--noir);
+    background: #f4f4f5;
+  }
+  * { box-sizing: border-box; }
+  /* Fond habillé : photo avec voile léger pour garder le simulateur lisible */
+  body { margin: 0; padding: 24px; background-color: #f4f4f5; }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background-image: url("fond.jpg");
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: rgba(253, 246, 240, 0.78);
+  }
+
+  /* Bandeau photo dans la carte : photo entière, nette, jamais coupée bizarrement */
+  .photo-bandeau {
+    display: block;
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  /* Logo institutionnelle recréé (fond blanc : version de base de la charte) */
+  .logo { display: inline-block; line-height: 1; padding: 14px 18px; background: #fff; }
+  .logo .ville { font-size: 0.72rem; letter-spacing: 0.28em; font-weight: 400; }
+  .logo .roubaix { font-size: 1.9rem; font-weight: 900; letter-spacing: 0.02em; margin-top: 2px; color: var(--noir); }
+  .logo .roubaix .x {
+    color: var(--rose);
+    display: inline-block;
+    transform: rotate(0deg);
+  }
+
+  .card {
+    max-width: 640px; margin: 0 auto; background: rgba(255, 255, 255, 0.96);
+    border-top: 6px solid var(--rose);
+    box-shadow: 0 6px 24px rgba(26, 23, 27, 0.28);
+  }
+  .card-header {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    padding: 20px 28px; border-bottom: 1px solid #e8e8ea;
+  }
+  .card-header h1 { margin: 0; font-size: 1.3rem; font-weight: 900; }
+  .card-header h1 span { color: var(--rose); }
+  .card-header .baseline { width: 100%; font-size: 0.82rem; color: #6b6b70; margin-top: 2px; }
+  .card-body { padding: 24px 28px 28px; }
+
+  .bloc {
+    border: 2px solid var(--noir); border-radius: 0;
+    padding: 18px; margin-bottom: 20px; position: relative; background: #fff;
+  }
+  .bloc .tag {
+    position: absolute; top: -12px; left: 14px; background: var(--noir); color: #fff;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 4px 12px;
+  }
+  label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.9rem; }
+  input[type=number] {
+    width: 100%; max-width: 260px; padding: 10px 12px; font-size: 1.05rem;
+    font-family: inherit; border: 2px solid var(--noir); border-radius: 0; outline: none; background: #fafafa;
+  }
+  input[type=number]:focus { border-color: var(--rose); background: #fff; }
+
+  .resultats { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+  .res-box { flex: 1; min-width: 150px; padding: 12px 14px; text-align: center; color: #fff; }
+  .res-box .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.9; }
+  .res-box .value { font-size: 1.35rem; font-weight: 900; margin-top: 4px; }
+  .res-box.agent { background: var(--rose); }
+  .res-box.employeur { background: var(--noir); }
+  .res-box.total { background: var(--violet); }
+
+  .grand-total {
+    background: var(--rose); color: #fff; padding: 18px 22px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  }
+  .grand-total .label { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.03em; }
+  .grand-total .value { font-size: 1.75rem; font-weight: 900; }
+
+  .barres { display: flex; height: 8px; max-width: 780px; margin: 0 auto; }
+  .barres div { flex: 1; }
+
+  .signature { text-align: right; margin-top: 18px; font-size: 0.85rem; color: #1a171b; font-weight: 700; }
+
+  /* Encadré "À savoir" */
+  .notes-bloc {
+    margin-top: 20px; padding: 16px 18px;
+    background: #fdf6f0; border: 1px solid #e8d9c8; border-left: 4px solid var(--rose);
+  }
+  .notes-titre {
+    font-size: 0.82rem; font-weight: 900; text-transform: uppercase;
+    letter-spacing: 0.06em; margin-bottom: 12px; color: var(--noir);
+  }
+  .notes-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .notes-liste li { display: flex; gap: 10px; align-items: flex-start; font-size: 0.85rem; line-height: 1.45; color: #3d3a40; }
+  .notes-liste .picto { flex: 0 0 auto; font-size: 1rem; line-height: 1.2; }
+  .notes-liste strong { color: var(--noir); }
+  .note { font-size: 0.78rem; color: #6b6b70; margin-top: 14px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <img class="photo-bandeau" src="fond.jpg" alt="Table de barbecue" />
+  <div class="card-header">
+    <div>
+      <h1>Simulateur <span>Titre Restaurant</span></h1>
+
+    </div>
+    <div class="logo">
+      <div class="ville">CCAS DE</div>
+      <div class="roubaix">ROUBAI<span class="x">X</span></div>
+    </div>
+  </div>
+
+  <div class="card-body">
+
+    <div class="bloc">
+      <span class="tag">Agent</span>
+      <label for="pm1">Nombre de pauses méridiennes par mois</label>
+      <input id="pm1" type="number" min="0" step="1" value="0" />
+      <div class="resultats">
+        <div class="res-box agent"><div class="label">Participation agent<br /><span style="font-weight:400; text-transform:none; letter-spacing:0">(mensuelle · 40 %)</span></div><div class="value" id="pa1">0,00 €</div></div>
+        <div class="res-box employeur"><div class="label">Participation employeur<br /><span style="font-weight:400; text-transform:none; letter-spacing:0">(mensuelle · 60 %)</span></div><div class="value" id="pe1">0,00 €</div></div>
+        <div class="res-box total"><div class="label">Total</div><div class="value" id="pt1">0,00 €</div></div>
+      </div>
+    </div>
+
+    <div class="grand-total">
+      <span class="label">Somme des participations (agent + employeur)</span>
+      <span class="value" id="grand">0,00 €</span>
+    </div>
+
+    <p class="note">Cette estimation est fournie à titre indicatif. Elle est calculée sur la base d'un mois de travail sans absence.<br />Les absences (maladie, congés) ne sont pas prises en compte dans ce calcul ; elles seront déduites lors de la régularisation.</p>
+    <p class="signature">Direction des Ressources Humaines</p>
+  </div>
+</div>
+
+<div class="barres">
+  <div style="background:#e3006a"></div>
+  <div style="background:#1a171b"></div>
+  <div style="background:#fbbb00"></div>
+  <div style="background:#5db1e4"></div>
+  <div style="background:#b4c30c"></div>
+  <div style="background:#526bac"></div>
+</div>
+
+<script>
+  var PA = 2.91, PE = 4.37, COEF = 1;
+  function eur(n) {
+    return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  }
+  function calcul() {
+    var pm = parseFloat(document.getElementById('pm1').value) || 0;
+    var pa = pm * PA * COEF, pe = pm * PE * COEF;
+    document.getElementById('pa1').textContent = eur(pa);
+    document.getElementById('pe1').textContent = eur(pe);
+    document.getElementById('pt1').textContent = eur(pa + pe);
+    document.getElementById('grand').textContent = eur(pa + pe);
+  }
+  document.getElementById('pm1').addEventListener('input', calcul);
+  calcul();
+</script>
+</body>
+</html>
